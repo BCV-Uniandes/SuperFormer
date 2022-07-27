@@ -5,3 +5,8 @@ SuperFormer: Volumetric Transformer Architectures for MRI Super-Resolution
 Cristhian Forigua$^1$, [María Escobar](https://mc-escobar11.github.io/)$^1$ and [Pablo Arbeláez](https://scholar.google.com.co/citations?user=k0nZO90AAAAJ&hl=en)$^1$
 $^1$Center for Research and Formation in Artificial Intelligence ([CINFONIA](https://cinfonia.uniandes.edu.co/)) , Universidad de Los Andes, Bogotá, Colombia.
 ![OverviewSuperformer drawio (1)](https://user-images.githubusercontent.com/66923636/181068906-77dfbcb3-a373-4af0-9ea8-4af73a531961.png)
+
+## Dependencies
+```
+
+```
