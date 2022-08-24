@@ -6,7 +6,8 @@ Cristhian Forigua$^1$, [María Escobar](https://mc-escobar11.github.io/)$^1$ and
 $^1$Center for Research and Formation in Artificial Intelligence ([CINFONIA](https://cinfonia.uniandes.edu.co/)) , Universidad de Los Andes, Bogotá, Colombia.
 ![OverviewSuperformer drawio (1)](https://user-images.githubusercontent.com/66923636/181068906-77dfbcb3-a373-4af0-9ea8-4af73a531961.png)
 
-## Dependencies
+## Dependencies and installation 
+1. Clone the repo
 ```
 
 ```
