@@ -14,7 +14,8 @@ cd SuperFormer
 ```
 2. Create environment from .yml file
 ```
-
+conda env create -f environment.yml
+conda activate superformer
 ```
 
 ## Human Connectome Project Dataset
