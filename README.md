@@ -16,3 +16,7 @@ cd SuperFormer
 ```
 
 ```
+
+## Human Connectome Project Dataset
+Please refer to the [Human Connectome Project](https://www.humanconnectome.org/study/hcp-young-adult/document/1200-subjects-data-release) to donwload the dataset. 
+
