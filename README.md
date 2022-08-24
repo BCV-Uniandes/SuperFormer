@@ -9,5 +9,10 @@ $^1$Center for Research and Formation in Artificial Intelligence ([CINFONIA](htt
 ## Dependencies and installation 
 1. Clone the repo
 ```
+git clone https://github.com/BCV-Uniandes/SuperFormer.git
+cd SuperFormer
+```
+2. Create environment from .yml file
+```
 
 ```
