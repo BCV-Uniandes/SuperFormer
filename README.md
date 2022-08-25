@@ -4,7 +4,7 @@ This repository provides a Pytorch implementation of the paper SuperFormer: Volu
 SuperFormer: Volumetric Transformer Architectures for MRI Super-Resolution
 Cristhian Forigua $^1$ , [María Escobar](https://mc-escobar11.github.io/)$^1$ and [Pablo Arbeláez](https://scholar.google.com.co/citations?user=k0nZO90AAAAJ&hl=en)$^1$
 
- $^1$ Center for Research and Formation in Artificial Intelligence ([CINFONIA](https://cinfonia.uniandes.edu.co/)) , Universidad de Los Andes, Bogotá, Colombia.
+Center for Research and Formation in Artificial Intelligence ([CINFONIA](https://cinfonia.uniandes.edu.co/)) , Universidad de Los Andes, Bogotá, Colombia.
  
 ![OverviewSuperformer drawio (1)](https://user-images.githubusercontent.com/66923636/181068906-77dfbcb3-a373-4af0-9ea8-4af73a531961.png)
 
@@ -21,5 +21,14 @@ conda activate superformer
 ```
 
 ## Human Connectome Project Dataset
-Please refer to the [Human Connectome Project](https://www.humanconnectome.org/study/hcp-young-adult/document/1200-subjects-data-release) to donwload the dataset. 
+Please refer to the [Human Connectome Project](https://www.humanconnectome.org/study/hcp-young-adult/document/1200-subjects-data-release) to donwload the dataset.
+Locate the files from ./split into the ./HCP folder before running the code.
+### Low-resolution MRI generation
+To generate the Low-resolution MRIs, we use the code in ./data/kspace.m. The factor_truncate variable controls the magnitude of subsampling the frequency domain space. Please change the "rootdir" path to your path where the data was downloaded. To run this code you need the "NIfTI_20140122" package in MATLAB.
+```
+./data/kspace.m
+```
+## Train
 
+## Pre-trained Model and Test
+You can find our pe-trained models [here](https://drive.google.com/drive/folders/1o4p5JHO5hwfrS2G7HREKhdOZI0T7ZgWM)
