@@ -36,7 +36,7 @@ Make sure to change the paths to the HCP folder inside the options files. Please
 The default is to train SuperFormer from scratch. However, you can change the route of the options file inside train.sh to train either the swinIR 2D approach, 3D RRDBNet, or 3D EDSR. See the ./options folder.
 ## Pre-trained Model and Test
 You can find our pe-trained models [here](https://drive.google.com/drive/folders/1o4p5JHO5hwfrS2G7HREKhdOZI0T7ZgWM) <br>
-Before testing, make sure you change the paths of the pretrained models inside the ./options/test files. Change the attribute "pretrained_netG". Also, change the path to the HCP data.
+Before testing, make sure you change the paths of the pretrained models inside the ./options/test files. Change the attribute "pretrained_netG". Also, change the path to the HCP data. <br>
 Test 3D command:
 ```
 sh test.sh
