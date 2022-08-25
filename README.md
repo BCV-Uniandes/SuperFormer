@@ -33,7 +33,7 @@ Training command:
 sh train.sh
 ```
 Make sure to change the paths to the HCP folder inside the options files. Please change the parameters "dataroot_H" and "dataroot_L". <br>
-The default is to train SuperFormer from scratch. However, you can change the route of the options file inside train.sh to train either the swinIR 2D approach, 3D RRDBNet, or 3D EDSR. See the ./options folder.
+The default is to train SuperFormer from scratch. However, you can change the path of the options file inside train.sh to train either the swinIR 2D approach, 3D RRDBNet, or 3D EDSR. See the ./options folder.
 ## Pre-trained Model and Test
 You can find our pe-trained models [here](https://drive.google.com/drive/folders/1o4p5JHO5hwfrS2G7HREKhdOZI0T7ZgWM) <br>
 Before testing, make sure you change the paths of the pretrained models inside the ./options/test files. Change the attribute "pretrained_netG". Also, change the path to the HCP data. <br>
