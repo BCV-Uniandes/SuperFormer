@@ -1,0 +1,1 @@
+python -m torch.distributed.launch --nproc_per_node=1 --master_port=1233 main_test_2D.py --opt options/test/test_swinir_2d_sr.json 

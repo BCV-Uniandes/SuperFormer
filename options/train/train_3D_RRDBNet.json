@@ -1,0 +1,81 @@
+{
+    "task": "3D_RRDBNet"     
+    , "model": "plain"           
+    , "gpu_ids": [0]             
+    , "dist": true
+  
+    , "scale": 1       
+    , "n_channels": 1  
+  
+    , "path": {
+      "root": "superresolution"      
+      , "pretrained_netG": null      
+      , "pretrained_netE": null      
+    }
+  
+    , "datasets": {
+      "train": {
+        "name": "train_dataset"          
+        , "dataset_type": "HCP"       
+        , "dataroot_H": "/media/SSD0/cdforigua/data/HCP"              // path of H training dataset
+        , "dataroot_L": "/media/SSD0/cdforigua/data/HCP"              // path of L training dataset
+        , "scale":  1
+        , "crop_size": 64              
+        , "split": "train"  
+        , "dataloader_shuffle": true
+        , "dataloader_num_workers": 16     
+        , "dataloader_batch_size": 3      
+      }
+      , "test": {
+        "name": "val_dataset"            
+        , "dataset_type": "HCP"            
+        , "dataroot_H": "/media/SSD0/cdforigua/data/HCP"  
+        , "dataroot_L": "/media/SSD0/cdforigua/data/HCP"            
+        , "split": "val"
+        ,"dataloader_batch_size": 1
+        , "train_size": 64
+      }
+    }
+  
+    , "netG": {
+      "net_type": "rrdbnet"  
+      , "out_nc": 1       
+      , "nf": 64          
+      , "nb": 19          
+      , "gc": 32          
+      , "ng": 2           
+      , "reduction" : 16  
+      , "act_mode": "L"   
+      , "bias": true
+  
+      , "init_type": "orthogonal"         
+      , "init_bn_type": "uniform"         
+      , "init_gain": 0.2
+    }
+  
+    , "train": {
+      "G_lossfn_type": "l1"               
+      , "G_lossfn_weight": 1.0           
+  
+      , "E_decay": 0                  
+  
+      , "G_optimizer_type": "adam"        
+      , "G_optimizer_lr": 1e-4            
+      , "G_optimizer_clipgrad": null      
+      , "G_optimizer_reuse": true
+  
+      , "G_scheduler_type": "MultiStepLR" 
+      , "G_scheduler_milestones": [200000, 400000, 600000, 800000, 1000000, 2000000]
+      , "G_scheduler_gamma": 0.5
+  
+      , "G_regularizer_orthstep": null    
+      , "G_regularizer_clipstep": null    
+  
+      , "G_param_strict": true
+      , "E_param_strict": true
+  
+      , "checkpoint_test": 500000000      
+      , "checkpoint_save": 2500          
+      , "checkpoint_print": 100          
+    }
+  }

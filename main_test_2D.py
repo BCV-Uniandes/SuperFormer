@@ -1,0 +1,161 @@
+import os.path
+import sys
+import setuptools
+import nibabel as nib
+from timm.models.layers import to_3tuple
+import math
+import argparse
+import time
+import random
+import numpy as np
+from collections import OrderedDict
+import logging
+from torchvision.utils import save_image
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
+import torch
+import tqdm
+
+from utils import utils_logger
+from utils import utils_image as util
+from utils import utils_option as option
+from utils.utils_dist import get_dist_info, init_dist
+
+from data.select_dataset import define_Dataset
+from models.select_model import define_Model
+import visdom
+
+
+
+def main(json_path='options/train_msrresnet_psnr.json'):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--opt', type=str, default=json_path, help='Path to option JSON file.')
+    parser.add_argument('--launcher', default='pytorch', help='job launcher')
+    parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--dist', default=False)
+    opt = option.parse(parser.parse_args().opt, is_train=True)
+    opt['dist'] = parser.parse_args().dist
+
+    
+    if opt['dist']:
+        init_dist('pytorch')
+    opt['rank'], opt['world_size'] = get_dist_info()
+    
+    if opt['rank'] == 0:
+        util.mkdirs((path for key, path in opt['path'].items() if 'pretrained' not in key))
+
+    border = opt['scale']
+
+    
+    if opt['rank'] == 0:
+        option.save(opt)
+    
+    opt = option.dict_to_nonedict(opt)
+
+    
+    if opt['rank'] == 0:
+        logger_name = 'test'
+        utils_logger.logger_info(logger_name, os.path.join(opt['path']['log'], logger_name+'.log'))
+        logger = logging.getLogger(logger_name)
+        logger.info(option.dict2str(opt))
+
+    seed = opt['train']['manual_seed']
+    if seed is None:
+        seed = random.randint(1, 10000)
+    print('Random seed: {}'.format(seed))
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    for phase, dataset_opt in opt['datasets'].items():
+        if phase in ['test', 'val', 'eval']:
+            test_set = define_Dataset(dataset_opt)
+            test_loader = DataLoader(test_set, batch_size=1,
+                                     shuffle=False, num_workers=1,
+                                     drop_last=False, pin_memory=True)
+        else:
+            raise NotImplementedError("Phase [%s] is not recognized." % phase)
+    
+    
+    model = define_Model(opt)
+    model.load()
+    model.netG.eval()
+
+    if opt['rank'] == 0:
+        logger.info(model.info_network())
+        logger.info(model.info_params())
+    
+    avg_psnr = 0.0
+    avg_ssim = 0.0
+    avg_nrmse = 0.0
+    avg_time = 0.0
+    idx = 0
+    train_size = opt["datasets"]["test"]["train_size"]
+    for test_data in tqdm.tqdm(test_loader):
+        time_in = time.time()
+        idx+=1
+        image_name_ext = os.path.basename(test_data['L_path'][0])
+        img_name, ext = os.path.splitext(image_name_ext)
+        img_name = img_name.split("_")[0]
+
+        img_dir = os.path.join(opt['path']['images'], img_name)
+        util.mkdir(img_dir)
+
+        border = 8
+
+        HR = test_data["H"] 
+        H,W,D = HR.shape[2:]
+        patches = (HR.shape[2]//opt["datasets"]["test"]["train_size"])*(HR.shape[3]//opt["datasets"]["test"]["train_size"])*(HR.shape[4]//opt["datasets"]["test"]["train_size"])
+        model.netG.eval()
+        output = torch.zeros_like(test_data['H'])
+        i=0
+        i_slice=0
+        time_in_axis = time.time()
+        prediction = torch.zeros_like(test_data['H'])
+        for h in range(H//train_size+1):
+            for w in range(W//train_size+1):
+                for d in range(D//train_size+1):
+                    i+=1
+                    patch_L = test_data['L'][:,:,h*train_size-2*h*border:h*train_size-2*h*border+train_size,
+                                                w*train_size-2*w*border:w*train_size-2*w*border+train_size,
+                                                d*train_size-2*d*border:d*train_size-2*d*border+train_size]
+                    pred_patch = torch.zeros_like(patch_L)
+
+                    for slice_i in range(opt["datasets"]["test"]["train_size"]):
+                        patch_L_slice = patch_L[:,:,slice_i,:,:]
+                        model.feed_data({'L':patch_L_slice}, need_H=False)
+                        model.test()
+                        pred_patch[:,:,slice_i,:,:] = model.E
+                    pred_crop = pred_patch[:,:,border:-border,border:-border, border:-border]
+
+                    prediction[:,:, h*train_size-2*h*border+border: h*train_size-2*h*border+train_size-border,
+                                w*train_size-2*w*border+border: w*train_size-2*w*border+train_size-border,
+                                d*train_size-2*d*border+border: d*train_size-2*d*border+train_size-border] = pred_crop
+        time_end_axis = time.time()
+        E_img = util.tensor2uint(prediction)  
+        H_img = util.tensor2uint(HR)
+        L_img = util.tensor2uint(test_data['L'])
+        current_psnr = util.calculate_psnr(E_img, H_img, border=24)
+        current_nrmse = util.calculate_nrmse(H_img, E_img, border=24)
+        current_ssim = util.calculate_ssim_3d(H_img, E_img, border=24)
+        current_time = time_end_axis-time_in_axis
+
+        avg_nrmse += current_nrmse
+        avg_psnr += current_psnr
+        avg_ssim += current_ssim
+        avg_time += current_time
+
+        logger.info('{:->4d}--> {:>10s} |PSNR: {:<4.2f}dB | SSIM: {:<4.2f} | NRMSE: {:<4.2f}'.format(idx, image_name_ext, current_psnr, current_ssim, current_nrmse))
+
+    avg_psnr = avg_psnr / idx
+    avg_ssim = avg_ssim / idx
+    avg_nrmse = avg_nrmse / idx
+    avg_time = avg_time/idx
+
+    logger.info('<Avg PSNR : {:<.4f}dB, Avg SSIM : {:<.4f}, Avg NRMSE: {:<.4f}, Avg time: {:<.4f}\n'.format(avg_psnr, avg_ssim, avg_nrmse, avg_time))
+
+
+
+if __name__ == '__main__':
+    main()

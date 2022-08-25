@@ -1,0 +1,1 @@
+python -m torch.distributed.launch --nproc_per_node=1 --master_port=1235 main_test_3D.py --opt options/test/test_3D_RRDBNet.json

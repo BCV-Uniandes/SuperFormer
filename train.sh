@@ -1,0 +1,1 @@
+python -m torch.distributed.launch --nproc_per_node=4 --master_port=1231 main_train.py --opt options/train/train_superformer.json  --dist True
